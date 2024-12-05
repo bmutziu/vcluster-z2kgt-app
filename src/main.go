@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/pflag"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/pflag"
 )
 
 var text = pflag.String("text", "", "text to put on the webpage")
@@ -19,7 +20,7 @@ func main() {
 	pflag.Parse()
 
 	if *text == "" {
-		log.Fatal("--text option is required!")
+		log.Fatal("--text option is required!?")
 	}
 
 	r := gin.Default()
