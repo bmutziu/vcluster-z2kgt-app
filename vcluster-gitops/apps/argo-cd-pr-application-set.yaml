@@ -50,7 +50,7 @@ spec:
         data:
           service.github: |
             appID: 1068811
-            installationID: 57583936
+            installationID: 58009142
             privateKey: {{`"\$githubAppPrivateKey"`}}
           template.app-deployed: |
             message: |
