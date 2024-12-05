@@ -68,12 +68,20 @@ spec:
                     enabled: true
                     annotations:
                       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+                      cert-manager.io/issuer: lets-encrypt-http-issuer
                       nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
                     ingressClassName: "nginx"
                     hostname: argocd-{{ .Values.loft.virtualClusterName }}.{{ .Values.loft.clusterAnnotations.domain }}
                     tls: true
                   ingressGrpc:
                     enabled: false
+                  certificate:
+                    enabled: true
+                    domain: argocd-{{ .Values.loft.virtualClusterName }}.{{ .Values.loft.clusterAnnotations.domain }}
+                    issuer:
+                      group: "cert-manager.io"
+                      kind: "Issuer"
+                      name: "lets-encrypt-http-issuer"
                 ## ApplicationSet controller
                 applicationSet:
                   enabled: true
@@ -85,6 +93,13 @@ spec:
                       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
                     hostname: argocd-appset-{{ .Values.loft.virtualClusterName }}.{{ .Values.loft.clusterAnnotations.domain }}
                     tls: true
+                  certificate:
+                    enabled: true
+                    domain: argocd-appset-{{ .Values.loft.virtualClusterName }}.{{ .Values.loft.clusterAnnotations.domain }}
+                    issuer:
+                      group: "cert-manager.io"
+                      kind: "Issuer"
+                      name: "lets-encrypt-http-issuer"
                 notifications:
                   argocdUrl: https://argocd-{{ .Values.loft.virtualClusterName }}.{{ .Values.loft.clusterAnnotations.domain }}
                   cm:
@@ -144,6 +159,23 @@ spec:
           data:
             .dockerconfigjson: e30K
           type: kubernetes.io/dockerconfigjson
+          ---
+          apiVersion: cert-manager.io/v1
+          kind: Issuer
+          metadata:
+            name: lets-encrypt-http-issuer
+            namespace: argocd
+          spec:
+            acme:
+              email: b.mutiu@deepsea.ai
+              privateKeySecretRef:
+                name: vcluster-platform-letsencrypt-credentials
+              server: https://acme-v02.api.letsencrypt.org/directory
+              solvers:
+              - http01:
+                  ingress:
+                    class: nginx
+          ---
         pro:
           enabled: true
         helmRelease:
@@ -160,7 +192,41 @@ spec:
               toHost:
                 ingresses:
                   enabled: true
-
+                  patches:
+                    - path: metadata.annotations["cert-manager.io/issuer"]
+                      reference:
+                        apiVersion: cert-manager.io/v1
+                        kind: Issuer
+                customResources:
+                  certificates.cert-manager.io:
+                    enabled: true
+                    patches:
+                      - path: spec.secretName
+                        reference:
+                          apiVersion: v1
+                          kind: Secret
+                      - path: spec.issuerRef
+                        reference:
+                          apiVersion: cert-manager.io/v1
+                          kind: Issuer   # defaults to Issuer
+                          kindPath: kind # to also allow ClusterIssuer
+                          namePath: name
+                      - path: status.nextPrivateKeySecretName
+                        reference:
+                          apiVersion: v1
+                          kind: Secret
+                  issuers.cert-manager.io:
+                    enabled: true
+                    patches:
+                      - path: spec.acme.privateKeySecretRef.name
+                        reference:
+                          apiVersion: v1
+                          kind: Secret
+              fromHost:
+                customResources:
+                  clusterissuers.cert-manager.io:
+                    enabled: true
+                    scope: "Cluster"
             controlPlane:
               # Use an embedded managed etcd server instead of using the k3s default SQLite backend
               backingStore:
@@ -177,6 +243,10 @@ spec:
                       tag: "{{ .Values.k8sVersion }}"
               coredns:
                 embedded: true
+              statefulSet:
+                persistence:
+                  volumeClaim:
+                    storageClass: "gp2"
         accessPoint:
           ingress: {}
         spaceTemplate:

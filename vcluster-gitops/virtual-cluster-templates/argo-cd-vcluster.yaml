@@ -40,12 +40,20 @@ spec:
                 enabled: true
                 annotations:
                   nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+                  cert-manager.io/issuer: lets-encrypt-http-issuer
                   nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
                 ingressClassName: "nginx"
                 hostname: {{ .Values.loft.virtualClusterName }}-{{ .Values.loft.project }}-{{ .Values.loft.clusterAnnotations.domainPrefix }}.{{ .Values.loft.clusterAnnotations.domain }}
                 tls: true
               ingressGrpc:
                 enabled: false
+              certificate:
+                enabled: true
+                domain: {{ .Values.loft.virtualClusterName }}-{{ .Values.loft.project }}-{{ .Values.loft.clusterAnnotations.domainPrefix }}.{{ .Values.loft.clusterAnnotations.domain }}
+                issuer:
+                  group: "cert-manager.io"
+                  kind: "Issuer"
+                  name: "lets-encrypt-http-issuer"
             ## ApplicationSet controller
             applicationSet:
               enabled: true
@@ -57,6 +65,13 @@ spec:
                   nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
                 hostname: {{ .Values.loft.virtualClusterName }}-{{ .Values.loft.project }}-{{ .Values.loft.clusterAnnotations.domainPrefix }}-appset.{{ .Values.loft.clusterAnnotations.domain }}
                 tls: true
+              certificate:
+                enabled: true
+                domain: {{ .Values.loft.virtualClusterName }}-{{ .Values.loft.project }}-{{ .Values.loft.clusterAnnotations.domainPrefix }}-appset.{{ .Values.loft.clusterAnnotations.domain }}
+                issuer:
+                  group: "cert-manager.io"
+                  kind: "Issuer"
+                  name: "lets-encrypt-http-issuer"
             notifications:
               argocdUrl: https://{{ .Values.loft.virtualClusterName }}-{{ .Values.loft.project }}-{{ .Values.loft.clusterAnnotations.domainPrefix }}.{{ .Values.loft.clusterAnnotations.domain }}
               cm:
@@ -92,10 +107,43 @@ spec:
           toHost:
             ingresses:
               enabled: true
+            patches:
+              - path: metadata.annotations["cert-manager.io/issuer"]
+                reference:
+                  apiVersion: cert-manager.io/v1
+                  kind: Issuer
             customResources:
               argocdwebhooks.demo.loft.sh:
                 enabled: true
-
+              certificates.cert-manager.io:
+                enabled: true
+                patches:
+                  - path: spec.secretName
+                    reference:
+                      apiVersion: v1
+                      kind: Secret
+                  - path: spec.issuerRef
+                    reference:
+                      apiVersion: cert-manager.io/v1
+                      kind: Issuer   # defaults to Issuer
+                      kindPath: kind # to also allow ClusterIssuer
+                      namePath: name
+                  - path: status.nextPrivateKeySecretName
+                    reference:
+                      apiVersion: v1
+                      kind: Secret
+              issuers.cert-manager.io:
+                enabled: true
+                patches:
+                  - path: spec.acme.privateKeySecretRef.name
+                    reference:
+                      apiVersion: v1
+                      kind: Secret
+          fromHost:
+            customResources:
+              clusterissuers.cert-manager.io:
+                enabled: true
+                scope: "Cluster"
         controlPlane:
           # Use an embedded managed etcd server instead of using the default SQLite backend
           backingStore:
@@ -105,6 +153,10 @@ spec:
           coredns:
             enabled: true
             embedded: true
+          statefulSet:
+            persistence:
+              volumeClaim:
+                storageClass: "gp2"
     accessPoint:
       ingress: {}
     spaceTemplate:
