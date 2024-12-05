@@ -138,6 +138,8 @@ spec:
                     value: prefix
                   - name: "ingress.tls[0].hosts[0]"
                     value: {{ .Values.loft.virtualClusterName }}.{{ .Values.loft.clusterAnnotations.domain }}
+                  - name: "ingress.tls[0].secretName"
+                    value: preview-hello-world-app-tls
               project: "default"
               destination:
                 name: 'in-cluster'
