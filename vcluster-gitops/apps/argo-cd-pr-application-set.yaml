@@ -49,8 +49,8 @@ spec:
           namespace: argocd
         data:
           service.github: |
-            appID: 410217 
-            installationID: 43032092
+            appID: 1068811
+            installationID: 57583936
             privateKey: {{`"\$githubAppPrivateKey"`}}
           template.app-deployed: |
             message: |
@@ -93,7 +93,7 @@ spec:
           - pullRequest:
               github:
                 # The GitHub organization or user.
-                owner: loft-demos
+                owner: bmutziu
                 # The Github repository
                 repo: {{ .Values.repoName }}
                 # (optional) use a GitHub App to access the API instead of a PAT.
@@ -115,13 +115,13 @@ spec:
                 syncOptions:
                   - CreateNamespace=true
               source:
-                repoURL: 'https://github.com/loft-demos/{{ .Values.repoName }}.git'
+                repoURL: 'https://github.com/bmutziu/{{ .Values.repoName }}.git'
                 targetRevision: '{{`{{head_sha}}`}}'
                 path: helm-chart/
                 helm:
                   parameters:
                   - name: "image.repository"
-                    value: ghcr.io/loft-demos/{{ .Values.repoName }}
+                    value: ghcr.io/bmutziu/{{ .Values.repoName }}
                   - name: "image.tag"
                     value: "{{`{{head_short_sha}}`}}"
                   - name: "image.args.text"
@@ -148,7 +148,7 @@ spec:
                     https://{{ .Values.loft.virtualClusterName }}.{{ .Values.loft.clusterAnnotations.domain }}
                 - name: GitHub PR
                   value: >-
-                    https://github.com/loft-demos/{{ .Values.repoName }}/pull/{{`{{number}}`}}
+                    https://github.com/bmutziu/{{ .Values.repoName }}/pull/{{`{{number}}`}}
         EOF
   parameters:
     - variable: vClusterName
