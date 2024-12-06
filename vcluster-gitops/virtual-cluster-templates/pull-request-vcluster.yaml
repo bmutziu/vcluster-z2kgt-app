@@ -176,6 +176,22 @@ spec:
                   ingress:
                     class: nginx
           ---
+          apiVersion: cert-manager.io/v1
+          kind: Issuer
+          metadata:
+            name: lets-encrypt-http-issuer
+            namespace: preview-hello-world-app
+          spec:
+            acme:
+              email: b.mutiu@deepsea.ai
+              privateKeySecretRef:
+                name: vcluster-platform-letsencrypt-credentials
+              server: https://acme-v02.api.letsencrypt.org/directory
+              solvers:
+              - http01:
+                  ingress:
+                    class: nginx
+          ---
         pro:
           enabled: true
         helmRelease:
