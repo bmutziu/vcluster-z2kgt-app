@@ -57,9 +57,11 @@ spec:
       teams:
         - api-framework
   argoCD:
-    virtualClusterInstance: argocd
+    enabled: true
+    cluster: loft-cluster
     namespace: argocd
     sso:
+      enabled: true
       host: https://argocd-REPLACE_BASE_DOMAIN
       assignedRoles:
         - role:admin
