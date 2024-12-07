@@ -20,7 +20,7 @@ func main() {
 	pflag.Parse()
 
 	if *text == "" {
-		log.Fatal("--text option is required!")
+		log.Fatal("--text option is required!!!")
 	}
 
 	r := gin.Default()
