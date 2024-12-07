@@ -63,6 +63,8 @@ spec:
       host: https://argocd-REPLACE_BASE_DOMAIN
       assignedRoles:
         - role:admin
+      enabled: false
+    enabled: false
   namespacePattern:
     virtualCluster: '{{.Values.loft.project}}-v-{{.Values.loft.name}}'
 ---
