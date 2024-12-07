@@ -3,4 +3,4 @@ name: vcluster-z2kgt-app
 description: A Helm chart for simple echo app
 type: application
 version: 1.4.0
-appVersion: 0.0.4
+appVersion: 0.0.5
