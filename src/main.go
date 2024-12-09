@@ -13,8 +13,10 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var text = pflag.String("text", "", "text to put on the webpage")
-var addr = pflag.String("addr", ":8080", "address to listen on")
+var (
+	text = pflag.String("text", "", "text to put on the webpage")
+	addr = pflag.String("addr", ":8080", "address to listen on")
+)
 
 func main() {
 	pflag.Parse()
@@ -62,4 +64,3 @@ func HealthHandler(c *gin.Context) {
 func TextHandler(c *gin.Context) {
 	c.String(http.StatusOK, *text)
 }
-
